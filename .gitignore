@@ -1,0 +1,3 @@
+shared_data/*
+
+!shared_data/.gitkeep
