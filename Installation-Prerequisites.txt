@@ -1,0 +1,4 @@
+﻿apt-get install docker
+apt-get install nfs-kernel-server
+apt-get install nfs-common
+apt-get install nfs-utils

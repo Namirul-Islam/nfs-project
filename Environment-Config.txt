@@ -1,0 +1,96 @@
+﻿The clients were configured in a Dockerfile using the Alpine Linux image. After the image was downloaded and built we installed the latest version of nfs utilities containing the nfs-common package that would help make the container behave as an nfs client. We also installed bash and made a shared directory which will be used to mount the directory of the network. The script is then copied from the host computer to the client container and then permission for execution is provided so that all users inside the container can run the script. Finally we call the script. The script waits for the server to initialize and then we run a tail command which helps us to keep the container running. Docker containers exit after their work is done, however, we want them to continue running even after their execution has been completed so a command that will continue to keep running unless the container is forcefully stopped is used.
+
+
+The servers were also configured in a Dockerfile using the Alpine Linux image. After the image was downloaded and built, we installed the latest version of nfs-utils which would contain our nfs-kernel-server, rpc.nfsd and rpc.mountd packages that would enable us to create a container that would act as if it is a network file system server. We also install bash and make a shared directory that will be used by clients to read from and write to and ensure all users can access it. The server’s script named run_nfs is copied from the host to the server container and given executable permission for all users having access to the server. Finally the network file system ports and remote procedure call ports were exposed for both tcp and udp ports. In the end, we ran a script file that ensures that the script runs even if a mistake is made. A directory is made that would ensure that clients who made requests before a server crashed would be served first. This feature was not yet implemented. We mount using the network file system daemon’s network file system protocol providing the location of the daemon. If the directory has already been created we continue as usual. Since nfs-kernel-server requires using the system’s kernel to communicate with clients, we manually configure the system by ensuring that the storage has read write access and avoid root privileges. We export all directories from /etc/exports that the server will make use of. We finally created 8 threads in the server so that it can support multiple clients. Finally we keep the mountd function on the rpc function ensuring that clients can mount the directories of the server. We also ensure that the system is running in the foreground so that docker does not exit after executing it.
+
+
+The docker compose file contains the server and client information. We create two servers and two clients. Below, you can see an example of how a server would be built. The Dockerfile used to build the server is located in the server folder so is mentioned in the context of the build. We give our server container a name so that it can be used as an alias by other clients rather than a randomly generated name. Since docker has a bit of permission issues we set privileged to true. Volumes for the storage container and for the host’s kernel space are copied to the container so the server can use them to communicate through the kernel. The server is also provided with a manual address that belongs to docker.
+
+
+  nfs-server:
+    build: 
+      context: ./server 
+    container_name: nfs-server
+    privileged: true
+    volumes:
+      - /lib/modules:/lib/modules:ro # Ensure that the container can use the host's kernel space since containers only operate on the user space
+      - ./shared_data:/nfsshare   # Local folder on your PC to store the data 
+    networks:
+      dist-net:
+        ipv4_address: 172.20.0.2
+
+
+The Dockerfile used to build the client is in the client folder so we provide the folder name in the context of the build. Since docker has strict permission issues and communication with the kernel requires root privileges. We also need to ensure that the client starts after the server in order to avoid running into error so we add the nfs-server as a dependency for the client on the list of depends_on field.
+
+
+  client-a:
+    build:
+      context: ./client 
+    container_name: client-a
+    privileged: true
+    depends_on:
+      - nfs-server
+    networks:
+      - dist-net
+
+
+
+
+Finally we set up a network to ensure that the client and servers can communicate with each other by providing it with a subnet. We also use a bridge network that allows containers to communicate with each other as if they are isolated from each other while using the host’s network as the medium.
+
+
+networks:
+  dist-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+
+Finally we run the following commands in order to start the system
+
+
+# Build server and client containers
+docker compose build
+
+
+# Run server and client containers in the background and not as the main process
+docker compose up -d
+
+
+# Execute bash in a certain container (it stands for interactive terminal)
+docker exec -it client-a bash
+
+
+# Inside the client run the following commands to mount a directory on the network using nfs
+mount -t nfs -o nolock nfs-server:/nfsshare /mnt/distributed_data
+
+
+echo “Test file being written” >> mnt/distributed_data/test.txt
+
+
+exit
+
+
+# In the host terminal run the command for a different client
+docker exec -it client-b bash
+
+
+# Inside the client run the following commands
+mount -t nfs -o nolock nfs-server:/nfsshare /mnt/distributed_data
+cat /mnt/distributed_data/test.txt
+exit
+
+
+# Stop a container. In this case, the server so that they do not operate as a single point of failure
+docker stop nfs-server
+
+
+# In the host terminal run the command for a different client
+docker exec -it client-a bash
+
+
+# Inside the client run the following commands
+mount -t nfs -o nolock nfs-server-2:/nfsshare /mnt/distributed_data
+cat /mnt/distributed_data/test.txt
+exit

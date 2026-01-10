@@ -7,7 +7,7 @@ services:
     privileged: true
     volumes:
       - /lib/modules:/lib/modules:ro # Ensure that the container can use the host's kernel space since containers only operate on the user space
-      - ./shared_data:/nfsshare   # Local folder on your PC to store the data
+      - ./shared_data:/nfsshare   # Local folder on your PC to store the data 
     networks:
       dist-net:
         ipv4_address: 172.20.0.2
@@ -51,4 +51,4 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.20.0.0/16
+        - subnet: 172.20.0.0/16 # All IPs are collected from this subnet

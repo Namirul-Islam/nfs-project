@@ -1,0 +1,11 @@
+# Build server and client containers
+docker compose build
+
+# Run server and client containers
+docker compose up -d
+
+# Execute bash in a certain container (it stands for interactive terminal)
+docker exec -it client-a bash
+
+# Stop a container
+docker stop nfs-server
