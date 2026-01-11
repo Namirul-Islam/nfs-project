@@ -15,8 +15,9 @@ Email: namirul.islam@g.bracu.ac.bd
 
 
 Name: Abid Hossain Ashik
-Email: 
+Email: abid.hossain.ashik@g.bracu.ac.bd
 
 
 Name: Mr. Mohammad Fahim
+
 Email:
