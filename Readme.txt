@@ -7,7 +7,7 @@ A network file system gives us the illusion that our files are located on our ph
 In this project, we used docker and created 2 client containers and 2 server containers and ensured communication between them. The clients and servers were configured using a Dockerfile which contains the information about the system’s configuration. As a result, there was no need to build the containers from scratch every time and the process of setting up the containers was automated. A script was included for the container which would also be used to run the commands inside a virtual terminal in the clients. The server containers are similar in the sense that they also utilize a Dockerfile for the server’s configuration as well as a script file. The script file ensures that the server can ensure remote procedure calls for the clients as well as ensuring that the correct network file system daemon has been mounted for usage.
 
 
-Video Link: 
+Video Link: https://youtu.be/u5MesDwyN2c
 
 
 Name: Namirul Islam
@@ -18,6 +18,5 @@ Name: Abid Hossain Ashik
 Email: abid.hossain.ashik@g.bracu.ac.bd
 
 
-Name: Mr. Mohammad Fahim
-
-Email:
+Name: Mohammad Fahim
+Email: mohammad.fahim@g.bracu.ac.bd
